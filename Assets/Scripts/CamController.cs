@@ -112,7 +112,7 @@ public class CamController : MonoBehaviour
 		Vector3 lookPosition = focusPoint - lookDirection * distance;
 		if (Physics.Raycast(
 			focusPoint, -lookDirection, out RaycastHit hit, distance
-		)) {
+		)) {			
 			lookPosition = focusPoint - lookDirection * hit.distance;
 		}
 		transform.SetPositionAndRotation(lookPosition, lookRotation);
