@@ -86,7 +86,7 @@ public class ControllerPlayer : MonoBehaviour
         }else{
             timerjump = 1f;
             anim.SetBool("jump", false);
-            anim.SetBool("BackJump", false);
+            anim.SetBool("JumpBack", false);
         }
     }
      private IEnumerator Attack(){
@@ -107,7 +107,7 @@ public class ControllerPlayer : MonoBehaviour
          timerjump += Time.deltaTime;
             if(characterController.isGrounded){
                 if(timerjump > 1f){
-                    anim.SetBool("BackJump", Input.GetKey(KeyCode.S)); 
+                    anim.SetBool("JumpBack", Input.GetKey(KeyCode.S)); 
                     anim.SetBool("jump", !Input.GetKey(KeyCode.S));
                     moveDirection.y = jumpSpeed;
                     anim.SetBool("attack", false);
