@@ -14,13 +14,11 @@ public class CamController : MonoBehaviour
 
 	[SerializeField, Range(1f, 20f)]
 	float distance = 5f;
-    [SerializeField, Min(0f)]
-	float focusRadius = 1f;
-    Vector3 focusPoint, previousFocusPoint;
+    [SerializeField, Min(0f)]    Vector3 focusPoint, previousFocusPoint;
     Vector2 orbitAngles = new Vector2(45f, 0f);
     [SerializeField, Range(1f, 360f)]
 	float rotationSpeed = 10f;
-    private float mouseX =0.0f,mouseY =0.0f;
+    private float mouseX =0.0f, mouseY =0.0f;
 
     [SerializeField, Range(-89f, 89f)]
 	float minVerticalAngle = -30f, maxVerticalAngle = 60f;
@@ -112,11 +110,12 @@ public class CamController : MonoBehaviour
 		Vector3 lookPosition = focusPoint - lookDirection * distance;
 		if (Physics.Raycast(
 			focusPoint, -lookDirection, out RaycastHit hit, distance
-		)) {			
-			lookPosition = focusPoint - lookDirection * hit.distance;
+		)) {
+			if(!hit.collider.CompareTag("Sword"))			
+				lookPosition = focusPoint - lookDirection * hit.distance;
 		}
 		transform.SetPositionAndRotation(lookPosition, lookRotation);
-
+		
 		if (Input.GetAxis("Mouse ScrollWheel") > 0f && distance > 1f) // forward
  		{
 			distance--;

@@ -4,91 +4,85 @@ using UnityEngine;
 [RequireComponent(typeof(Animator))]
 public class ControllerPlayer : MonoBehaviour
 {
+    private CharacterController controller;
+    private Vector3 playerVelocity;
+    public bool groundedPlayer;
+    private float playerSpeed = 5.0f;
+    private float jumpHeight = 6.0f;
+    private float gravityValue = -9.81f;
     public GameObject camera;
-    private string turnImputAxisX= "Horizontal";
-    private string turnImputAxisY= "Vertical";
-    private Animator anim;
-    [Tooltip("Rate per seconds holding down input")]
-    public float inputX;
     public float inputY;
-
-    private Quaternion target;
-    public float rotationRate = 90;
-
-    public float timerjump = 1f;
-    // Update is called once per frame
-
-    public float timerattack = 1.30f;
-    // Update is called once per frame
+    public float inputX;
+    private Animator anim;
+    private bool jump = false;
+    public float trunSmoothTime = 0.1f;
+    float trunSmoothVelocity;
+    float timerattack;
     
-    public float jumpSpeed =10.0F;
-    public float gravity = 20.0F;
-    private Vector3 moveDirection = Vector3.zero;
-    private CharacterController characterController;
-    void Start()
+
+    private void Start()
     {
         anim = GetComponent<Animator> ();
-        characterController = GetComponent<CharacterController>();
+        controller = GetComponent<CharacterController>();;
     }
+
     void Update()
     {
-        inputX = Input.GetAxis (turnImputAxisX);
-        inputY = Input.GetAxis (turnImputAxisY);
-        if(Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.S)){
-            ApplyInput(0f);
-        }
-        if(Input.GetKey(KeyCode.A)){
-            inputX = 1;
-            inputY = 0;
-            ApplyInput(-90f);
-        } 
-        if(Input.GetKey(KeyCode.D)){
-            inputX = -1;
-            inputY = 0;
-            ApplyInput(90f);
-        }
-
-        if(Input.GetKey(KeyCode.W) && Input.GetKey(KeyCode.A)){
-            ApplyInput(-45f);
-        }
+        groundedPlayer = controller.isGrounded;
+        inputY = Input.GetAxis ("Vertical");
+        inputX = Input.GetAxis ("Horizontal");
         
-        if(Input.GetKey(KeyCode.W) && Input.GetKey(KeyCode.D)){
-            ApplyInput(45f);
-        }
-
-        if(Input.GetKey(KeyCode.S) && Input.GetKey(KeyCode.A)){
-            inputY = -1;
-            ApplyInput(45f);
-        }
-        
-        if(Input.GetKey(KeyCode.S) && Input.GetKey(KeyCode.D)){
-            inputY = -1;
-            ApplyInput(-45f);
-        }
-        
-        anim.SetFloat(turnImputAxisX, inputX);
-        anim.SetFloat(turnImputAxisY, inputY);
-
-        if(Input.GetMouseButtonDown(0))
+         if(Input.GetMouseButtonDown(0))
         {
             if(timerattack > 1.30f){
-                if(characterController.isGrounded){
+                if(groundedPlayer){
                     StartCoroutine(Attack());
                     timerattack = 0f;
                 }
             }
         }
         timerattack += Time.deltaTime;
+
+        Vector3 direction = new Vector3(inputX, 0, inputY).normalized;
         
-        if(Input.GetKey(KeyCode.Space))
-        {   
-           Jump();
-        }else{
-            timerjump = 1f;
-            anim.SetBool("jump", false);
-            anim.SetBool("JumpBack", false);
+        if(direction.magnitude >= 0.01f){
+            float targetAngle = Mathf.Atan2(direction.x,direction.z) * Mathf.Rad2Deg + camera.transform.eulerAngles.y;
+            float angle = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetAngle, ref trunSmoothVelocity, trunSmoothTime);
+            transform.rotation = Quaternion.Euler(0f, angle, 0f);
+
+            Vector3 movDir = Quaternion.Euler(0f, targetAngle, 0f) * Vector3.forward;
+            controller.Move(movDir.normalized * Time.deltaTime * playerSpeed);
+
         }
+
+        if (groundedPlayer){
+            anim.SetFloat("Horizontal", inputX);
+            anim.SetFloat("Vertical", inputY);
+        }      
+       
+        if (groundedPlayer && playerVelocity.y < 0)
+        {
+            playerVelocity.y = 0f;
+            jump =false;
+        }
+       
+
+        // Changes the height position of the player..
+        if (Input.GetButtonDown("Jump") && !jump)
+        {
+            playerVelocity.y += Mathf.Sqrt(jumpHeight * -1.0f * gravityValue);
+            jump = true;
+            anim.SetBool("jump",jump);
+        }
+        
+        playerVelocity.y += gravityValue * Time.deltaTime;
+        controller.Move(playerVelocity * Time.deltaTime);
+        
+        anim.SetBool("jump",jump);
+
+       
     }
+
      private IEnumerator Attack(){
         anim.SetLayerWeight(anim.GetLayerIndex("attack"),1);            
         anim.SetBool("attack", true);
@@ -97,27 +91,4 @@ public class ControllerPlayer : MonoBehaviour
         anim.SetLayerWeight(anim.GetLayerIndex("attack"),0);  
         anim.SetBool("attack", false);
      }
-    void ApplyInput(float angle)
-    {
-        target = Quaternion.Euler(transform.rotation.x, camera.transform.eulerAngles.y + angle, transform.rotation.z);
-        transform.rotation = Quaternion.Slerp(transform.rotation, target,  rotationRate * Time.deltaTime);
-    }
-
-    void Jump(){
-         timerjump += Time.deltaTime;
-            if(characterController.isGrounded){
-                if(timerjump > 1f){
-                    anim.SetBool("JumpBack", Input.GetKey(KeyCode.S)); 
-                    anim.SetBool("jump", !Input.GetKey(KeyCode.S));
-                    moveDirection.y = jumpSpeed;
-                    anim.SetBool("attack", false);
-                    anim.SetLayerWeight(anim.GetLayerIndex("attack"),0); 
-                    timerjump = 0f; 
-                }
-                
-            }
-            moveDirection.y -= gravity * Time.deltaTime;
-            characterController.Move(moveDirection * Time.deltaTime);
-    }
- 
 }
