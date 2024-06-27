@@ -3,8 +3,8 @@
     "configurations": [
         {
             "name": "Unity Editor",
-            "type": "unity",
-            "request": "launch"
+            "type": "vstuc",
+            "request": "attach",
         }
     ]
 }

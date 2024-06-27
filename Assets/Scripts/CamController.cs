@@ -17,7 +17,7 @@ public class CamController : MonoBehaviour
     [SerializeField, Min(0f)]    Vector3 focusPoint, previousFocusPoint;
     Vector2 orbitAngles = new Vector2(45f, 0f);
     [SerializeField, Range(1f, 360f)]
-	float rotationSpeed = 10f;
+	float rotationSpeed = 20f;
     private float mouseX =0.0f, mouseY =0.0f;
 
     [SerializeField, Range(-89f, 89f)]
